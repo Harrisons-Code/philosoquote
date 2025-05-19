@@ -103,6 +103,21 @@ const quotes = [
     moonIcon.style.display = isLightMode ? 'none' : 'block';
   });
   
+  // Create a container for quote actions (like favorite)
+  const quoteCard = document.querySelector('.quote-card');
+  const quoteActions = document.createElement('div');
+  quoteActions.className = 'quote-actions';
+  
+  // Add favorite button to the actions container
+  const favoriteBtn = document.createElement('button');
+  favoriteBtn.className = 'favorite-btn';
+  favoriteBtn.innerHTML = '<i class="far fa-star"></i>';
+  favoriteBtn.setAttribute('aria-label', 'Add to favorites');
+  quoteActions.appendChild(favoriteBtn);
+  
+  // Append the actions container to the quote card after the author
+  quoteAuthor.insertAdjacentElement('afterend', quoteActions);
+  
   let currentQuoteIndex = -1;
   
   function getRandomQuote() {
@@ -118,6 +133,12 @@ const quotes = [
     const { quote, author } = getRandomQuote();
     quoteText.textContent = `"${quote}"`;
     quoteAuthor.textContent = `— ${author}`;
+    
+    // Update favorite button state
+    const favorites = JSON.parse(localStorage.getItem('favoriteQuotes') || '[]');
+    const isFavorite = favorites.some(fav => fav.quote === quote && fav.author === author);
+    favoriteBtn.innerHTML = isFavorite ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+    favoriteBtn.classList.toggle('favorited', isFavorite);
   }
   
   // Add smooth transitions
@@ -141,5 +162,28 @@ const quotes = [
       e.preventDefault();
       newQuoteBtn.click();
     }
+  });
+  
+  // Add favorite functionality
+  favoriteBtn.addEventListener('click', () => {
+    const currentQuote = {
+      quote: quoteText.textContent.replace(/^"|"$/g, ''),
+      author: quoteAuthor.textContent.replace(/^— /, '')
+    };
+
+    let favorites = JSON.parse(localStorage.getItem('favoriteQuotes') || '[]');
+    const isFavorite = favorites.some(fav => fav.quote === currentQuote.quote && fav.author === currentQuote.author);
+
+    if (isFavorite) {
+      favorites = favorites.filter(fav => !(fav.quote === currentQuote.quote && fav.author === currentQuote.author));
+      favoriteBtn.innerHTML = '<i class="far fa-star"></i>';
+      favoriteBtn.classList.remove('favorited');
+    } else {
+      favorites.push(currentQuote);
+      favoriteBtn.innerHTML = '<i class="fas fa-star"></i>';
+      favoriteBtn.classList.add('favorited');
+    }
+
+    localStorage.setItem('favoriteQuotes', JSON.stringify(favorites));
   });
   
